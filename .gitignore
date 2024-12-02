@@ -1,0 +1,6 @@
+# files
+.env
+test.html
+
+# folders
+\__pycache__
