@@ -1,6 +1,7 @@
 # files
 .env
 test.html
+test.py
 
 # folders
 \__pycache__
