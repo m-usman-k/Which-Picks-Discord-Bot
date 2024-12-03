@@ -13,3 +13,9 @@ class TeamStatListModel(BaseModel):
     sports_name: str
     team_name: str
     all_stats: list[StatModel]
+
+class WhichPickListModel(BaseModel):
+    who_will_win: str
+    why: str
+    probability: float
+    all_stats: list[StatModel]

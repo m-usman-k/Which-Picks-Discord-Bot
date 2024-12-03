@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from models.Sports import TeamStatListModel
+from models.Sports import WhichPickListModel
 from models.Sports import PlayerStatListModel
 
 from openai import OpenAI
@@ -73,19 +74,35 @@ class Sports(commands.Cog):
 
         await interaction.edit_original_response(content="" , embed=embed)
 
-
-    @app_commands.command(name="player-performance" , description="Command to show performance of a player")
-    async def player_performance(self, interaction: discord.Interaction, player_name: str):
-        await interaction.response.send_message(content=f"You requested performance of {player_name}")
-
-
-    @app_commands.command(name="team-performance" , description="Command to show performance of a team")
-    async def team_performance(self, interaction: discord.Interaction, team_name: str):
-        await interaction.response.send_message(content=f"You requested performance of {team_name}")
-
     @app_commands.command(name="which-picks" , description="Command to choose a team that might win based on factual information and stats")
     async def which_picks(self, interaction: discord.Interaction, prompt: str):
-        await interaction.response.send_message(content=f"You requested which team might win based on {prompt}")
+        await interaction.response.send_message(content=f"Please wait loading team stats...")
+
+        client = OpenAI(api_key=OPENAPI_KEY)
+        completion = client.beta.chat.completions.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "system", "content": "You are a helpful sports expert. Give me which team might win based on factual information and stats. Give the probability in percentage."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format=WhichPickListModel
+        )
+
+        who_will_win = completion.choices[0].message.parsed.who_will_win
+        why = completion.choices[0].message.parsed.why
+        probability = completion.choices[0].message.parsed.probability
+        all_stats = completion.choices[0].message.parsed.all_stats
+
+        embed = discord.Embed(title="Player Statistics" , color=discord.Color.blurple())
+        embed.set_footer(text=f"{interaction.user.id} | {interaction.user.name}")
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        embed.add_field(name="Who will win?", value=who_will_win, inline=False)
+        embed.add_field(name="Why would they win?", value=why, inline=False)
+        embed.add_field(name="Probability of them winning:", value=f"{probability}%", inline=False)
+        for stat in all_stats:
+            embed.add_field(name=stat.stat_name , value=stat.stat_value , inline=False)
+
+        await interaction.edit_original_response(content="" , embed=embed)
 
 
 async def setup(bot: commands.Bot):
