@@ -19,3 +19,9 @@ class WhichPickListModel(BaseModel):
     why: str
     probability: float
     all_stats: list[StatModel]
+
+class WillHappenListModel(BaseModel):
+    will_happen_or_not: bool
+    why: str
+    probability: float
+    all_stats: list[StatModel]
